@@ -1,0 +1,129 @@
+<?php
+namespace MiniRest
+{
+    /*
+     * To change this license header, choose License Headers in Project Properties.
+     * To change this template file, choose Tools | Templates
+     * and open the template in the editor.
+     */
+
+    /**
+     * 处理请求
+     *
+     * @author 盛浩锋
+     * @date 2015-7-23
+     * @version v1.0.0
+     */
+    class Request {
+        private static $_instance;
+        
+        protected $_url;
+        protected $_method;
+        protected $_data;
+        protected $_accepts = array();
+        protected $_acceptLanguages = array();
+        protected $_contentType = array();
+        protected $_acceptEncoding;
+        protected $_route = array();
+        protected $_controller;
+
+
+        public $mimeTypes = array(
+            'html' => 'text/html',
+            'htm' => 'text/html',
+            'php' => 'application/php',
+            'css' => 'text/css',
+            'js' => 'application/javascript',
+            'json' => 'application/json',
+            'xml' => 'application/xml'
+        );
+        
+        private function __construct() {
+            $this->_url = $_SERVER['REQUEST_URI'];
+            $requestHeaders = getallheaders();
+            $this->_method = strtoupper($_SERVER['REQUEST_METHOD']);
+            $this->getData();
+            $this->_accepts = array_unique(array_merge($this->_accepts,$this->getAcceptArray($requestHeaders['Accept'])));
+            $this->_acceptLanguages = array_unique(array_merge($this->_acceptLanguages,$this->getAcceptArray($requestHeaders['Accept-Language'])));
+            $this->getRoute();
+            
+        }
+        
+        public static function getInstance(){
+            if (!self::$_instance)
+            {
+                self::$_instance = new Request();
+            }
+            return self::$_instance;
+        }
+        
+        private function getData(){
+            switch ($this->method){
+                case 'GET':
+                    $this->data = $_GET;
+                    break;
+                case 'POST':
+                    $this->data = $_POST;
+                    break;
+                default :
+                    parse_str(file_get_contents('php://input'), $this->_data);
+                    break;
+            }
+        }
+
+        private function getAcceptArray($acceptString){
+            $accept = $acceptArray = array();
+            foreach (explode(',', strtolower($acceptString)) as $part) {
+                $parts = preg_split('/\s*;\s*q=/', $part);
+                if (isset($parts) && isset($parts[1]) && $parts[1]) {
+                    $num = $parts[1] * 10;
+                } else {
+                    $num = 10;
+                }
+                if ($parts[0]) {
+                    $accept[$num][] = $parts[0];
+                }
+            }
+            krsort($accept);
+            foreach ($accept as $parts) {
+                foreach ($parts as $part) {
+                    $acceptArray[] = trim($part);
+                }
+            }
+            return $acceptArray;
+        }
+
+        private function getRoute(){
+            $routes = new Route();
+            foreach ($routes->_routes as $route){
+                if($route['status']){
+                    preg_match('#' . $route['url'] . '#i', $this->_url, $matches);
+                    if(!empty($matches[0])){
+                        foreach($matches as $k => $v){
+                            if(!is_int($k) && $k !== 'controller'){
+                                $this->_data[$k] = $v;
+                            }
+                        }
+                        $this->_controller = $this->parseController($matches['controller']);
+                        break;
+                    }
+                }
+            }
+        }
+        
+        private function parseController($controllerName){
+            $controllers = explode('/', $controllerName);
+            
+            return $a = implode('\\', 
+                        array_map(function($str){
+                            return ucfirst($str);
+                        }, 
+                        $controllers)
+                    );
+        }
+                
+        function __get($name) {
+            return isset($this->$name) ? $this->$name : null;
+        }
+    }
+}
