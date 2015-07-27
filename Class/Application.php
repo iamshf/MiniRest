@@ -12,8 +12,7 @@
  * @author shf
  */
 
-namespace MiniRest
-{use web\controller\admin;
+namespace MiniRest{
     class Application {
         private $_request;
         private $_resource;
