@@ -18,7 +18,6 @@ namespace MiniRest
             $this->_headers[] = 'Content-Type: text/html; charset=utf-8';
             
             $this->_body = $this->render(dirname(__FILE__).'/WelcomeTemplate.html');
-            //$this->_body = '<html><head><script type="text/javascript" src="http://test.bsccedu.com"></script></head><body>Welcome to MiniRest FrameWork</body></html>';
         }
         public function getJson(){
             $this->_headers[] = 'Content-Type: text/javascript; charset=utf-8';
