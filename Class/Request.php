@@ -25,7 +25,7 @@ namespace MiniRest
         protected $_contentType = array();
         protected $_acceptEncoding;
         protected $_route = array();
-        protected $_controller;
+        protected $_controller = 'Index';
 
 
         public $mimeTypes = array(
@@ -95,31 +95,35 @@ namespace MiniRest
 
         private function getRoute(){
             $routes = new Route();
+//            var_dump($this->_url);exit;
             foreach ($routes->_routes as $route){
                 if($route['status']){
                     preg_match('#' . $route['url'] . '#i', $this->_url, $matches);
                     if(!empty($matches[0])){
+//                        var_dump($route);exit;
                         foreach($matches as $k => $v){
                             if(!is_int($k) && $k !== 'controller'){
                                 $this->_data[$k] = $v;
                             }
                         }
-                        $this->_controller = $this->parseController($matches['controller']);
+                        $this->parseController($matches);
                         break;
                     }
                 }
             }
         }
         
-        private function parseController($controllerName){
-            $controllers = explode('/', $controllerName);
-            
-            return $a = implode('\\', 
+        private function parseController($matches){
+//            var_dump($matches);exit;
+            if(array_key_exists('controller', $matches) && !empty($matches['controller'])){
+            $controllers = explode('/', $matches['controller']);
+            $this->_controller = implode('\\', 
                         array_map(function($str){
                             return ucfirst($str);
                         }, 
                         $controllers)
                     );
+            }
         }
                 
         function __get($name) {
