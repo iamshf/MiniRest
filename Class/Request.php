@@ -60,10 +60,10 @@ namespace MiniRest
         private function getData(){
             switch ($this->method){
                 case 'GET':
-                    $this->data = $_GET;
+                    $this->_data = $_GET;
                     break;
                 case 'POST':
-                    $this->data = $_POST;
+                    $this->_data = $_POST;
                     break;
                 default :
                     parse_str(file_get_contents('php://input'), $this->_data);
