@@ -58,7 +58,7 @@ namespace MiniRest
         }
         
         private function getData(){
-            switch ($this->method){
+            switch ($this->_method){
                 case 'GET':
                     $this->_data = $_GET;
                     break;
