@@ -15,8 +15,8 @@ namespace MiniRest{
         
         protected $_headers = array();
         protected $_body;
-        
-        private $_request;
+        protected $_response;
+        protected $_request;
         
         protected $_data;
 
@@ -29,7 +29,6 @@ namespace MiniRest{
         private function checkAccept(){
             $accepts = $this->_request->_accepts;
             $accept = 'Html';
-            
             if($accepts[0]){
                 switch ($accepts[0]){
                     case 'application/json':
@@ -52,6 +51,14 @@ namespace MiniRest{
             return $accept;
         }
 
+        protected function isModified($file){
+            if(strtotime($this->_request->_ifmodifiedsince) >= filemtime($file)){
+                $this->_response->setStatus(304);
+                return false;
+            }
+            return true;
+        }
+        
         private function validateUrl(){
             
         }

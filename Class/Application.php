@@ -26,6 +26,7 @@ namespace MiniRest{
             $this->_response = new Response();
             
             $this->_resource->_request = $this->_request;
+            $this->_resource->_response = $this->_response;
             $this->_resource->_data = $this->_request->_data;
             $this->_resource->exec();
             

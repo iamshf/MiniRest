@@ -8,7 +8,7 @@ namespace MiniRest{
     class Response {
         protected $_body;
         protected $_headers = array();
-        protected $_status;
+        public $_status;
         
         protected $_statusMessages = array(
             100 => 'Continue',
@@ -78,8 +78,11 @@ namespace MiniRest{
         }
 
         public function output(){
+            
+            
             if($this->_status){
                 header('HTTP/1.1 '. $this->_status .' ' . $this->_statusMessages[$this->_status]);
+                header('Status: ' . $this->_status);
             }
             foreach ($this->_headers as $header){
                 header($header);

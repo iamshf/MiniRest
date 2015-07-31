@@ -26,6 +26,7 @@ namespace MiniRest
         protected $_acceptEncoding;
         protected $_route = array();
         protected $_controller = 'Index';
+        protected $_ifmodifiedsince;
 
 
         public $mimeTypes = array(
@@ -45,6 +46,10 @@ namespace MiniRest
             $this->getData();
             $this->_accepts = array_unique(array_merge($this->_accepts,$this->getAcceptArray($requestHeaders['Accept'])));
             $this->_acceptLanguages = array_unique(array_merge($this->_acceptLanguages,$this->getAcceptArray($requestHeaders['Accept-Language'])));
+            
+            if(array_key_exists('If-Modified-Since', $requestHeaders) && !empty($requestHeaders['If-Modified-Since'])){
+                $this->_ifmodifiedsince = $requestHeaders['If-Modified-Since'];
+            }
             $this->getRoute();
             
         }
