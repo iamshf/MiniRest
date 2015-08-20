@@ -100,12 +100,10 @@ namespace MiniRest
 
         private function getRoute(){
             $routes = new Route();
-//            var_dump($this->_url);exit;
             foreach ($routes->_routes as $route){
                 if($route['status']){
                     preg_match('#' . $route['url'] . '#i', $this->_url, $matches);
                     if(!empty($matches[0])){
-//                        var_dump($route);exit;
                         foreach($matches as $k => $v){
                             if(!is_int($k) && $k !== 'controller'){
                                 $this->_data[$k] = $v;
@@ -119,15 +117,14 @@ namespace MiniRest
         }
         
         private function parseController($matches){
-//            var_dump($matches);exit;
             if(array_key_exists('controller', $matches) && !empty($matches['controller'])){
-            $controllers = explode('/', $matches['controller']);
-            $this->_controller = implode('\\', 
-                        array_map(function($str){
-                            return ucfirst($str);
-                        }, 
-                        $controllers)
-                    );
+                $controllers = explode('/', $matches['controller']);
+                $this->_controller = implode('\\', 
+                            array_map(function($str){
+                                return ucfirst($str);
+                            }, 
+                            $controllers)
+                        );
             }
         }
                 

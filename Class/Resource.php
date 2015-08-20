@@ -26,7 +26,7 @@ namespace MiniRest{
 
             $this->$className();
         }
-        private function checkAccept(){
+        protected function checkAccept(){
             $accepts = $this->_request->_accepts;
             $accept = 'Html';
             if($accepts[0]){
@@ -42,6 +42,9 @@ namespace MiniRest{
                         break;
                     case 'text/css':
                         $accept = 'Css';
+                        break;
+                    case 'text/plain':
+                        $accept = 'Text';
                         break;
                     default :
                         $accept = 'Html';
