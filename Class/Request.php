@@ -45,11 +45,8 @@ namespace MiniRest
             $this->_method = strtoupper($_SERVER['REQUEST_METHOD']);
             $this->getData();
 
-            $accept = $this->getAcceptArray('Accept', $requestHeaders);
-            $acceptLanguages = $this->getAcceptArray('Accept-Language', $requestHeaders);
-
-            $this->_accepts = array_unique(array_merge($this->_accepts, ($accept === false ? 'text/html' : $accept)));
-            $this->_acceptLanguages = array_unique(array_merge($this->_acceptLanguages, ($acceptLanguages === false ? array('zh-CN') : $acceptLanguages)));
+            $this->_accepts = array_unique(array_merge($this->_accepts, $this->getAcceptArray('Accept', $requestHeaders)));
+            $this->_acceptLanguages = array_unique(array_merge($this->_acceptLanguages, $this->getAcceptArray('Accept-Language', $requestHeaders)));
             if(array_key_exists('If-Modified-Since', $requestHeaders) && !empty($requestHeaders['If-Modified-Since'])){
                 $this->_ifmodifiedsince = $requestHeaders['If-Modified-Since'];
             }
@@ -79,8 +76,8 @@ namespace MiniRest
         }
 
         private function getAcceptArray($acceptName, $requestHeaders){
+            $accept = $acceptArray = array();
             if(array_key_exists($acceptName, $requestHeaders) && !empty($requestHeaders[$acceptName])){
-                $accept = $acceptArray = array();
                 $acceptString = $requestHeaders[$acceptName];
                 foreach (explode(',', strtolower($acceptString)) as $part) {
                     $parts = preg_split('/\s*;\s*q=/', $part);
@@ -99,9 +96,8 @@ namespace MiniRest
                         $acceptArray[] = trim($part);
                     }
                 }
-                return $acceptArray;
             }
-            return false;
+            return $acceptArray;
         }
 
         private function getRoute(){
