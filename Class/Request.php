@@ -16,7 +16,7 @@ namespace MiniRest
      */
     class Request {
         private static $_instance;
-        
+
         protected $_url;
         protected $_method;
         protected $_data;
@@ -38,22 +38,24 @@ namespace MiniRest
             'json' => 'application/json',
             'xml' => 'application/xml'
         );
-        
+
         private function __construct() {
             $this->_url = $_SERVER['REQUEST_URI'];
             $requestHeaders = getallheaders();
             $this->_method = strtoupper($_SERVER['REQUEST_METHOD']);
             $this->getData();
-            $this->_accepts = array_unique(array_merge($this->_accepts,$this->getAcceptArray($requestHeaders['Accept'])));
-            $this->_acceptLanguages = array_unique(array_merge($this->_acceptLanguages,$this->getAcceptArray($requestHeaders['Accept-Language'])));
-            
+
+            $accept = $this->getAcceptArray('Accept', $requestHeaders);
+            $acceptLanguages = $this->getAcceptArray('Accept-Language', $requestHeaders);
+
+            $this->_accepts = array_unique(array_merge($this->_accepts, ($accept === false ? 'text/html' : $accept)));
+            $this->_acceptLanguages = array_unique(array_merge($this->_acceptLanguages, ($acceptLanguages === false ? array('zh-CN') : $acceptLanguages)));
             if(array_key_exists('If-Modified-Since', $requestHeaders) && !empty($requestHeaders['If-Modified-Since'])){
                 $this->_ifmodifiedsince = $requestHeaders['If-Modified-Since'];
             }
             $this->getRoute();
-            
         }
-        
+
         public static function getInstance(){
             if (!self::$_instance)
             {
@@ -61,41 +63,45 @@ namespace MiniRest
             }
             return self::$_instance;
         }
-        
+
         private function getData(){
             switch ($this->_method){
-                case 'GET':
-                    $this->_data = $_GET;
-                    break;
-                case 'POST':
-                    $this->_data = $_POST;
-                    break;
-                default :
-                    parse_str(file_get_contents('php://input'), $this->_data);
-                    break;
+            case 'GET':
+                $this->_data = $_GET;
+                break;
+            case 'POST':
+                $this->_data = $_POST;
+                break;
+            default :
+                parse_str(file_get_contents('php://input'), $this->_data);
+                break;
             }
         }
 
-        private function getAcceptArray($acceptString){
-            $accept = $acceptArray = array();
-            foreach (explode(',', strtolower($acceptString)) as $part) {
-                $parts = preg_split('/\s*;\s*q=/', $part);
-                if (isset($parts) && isset($parts[1]) && $parts[1]) {
-                    $num = $parts[1] * 10;
-                } else {
-                    $num = 10;
+        private function getAcceptArray($acceptName, $requestHeaders){
+            if(array_key_exists($acceptName, $requestHeaders) && !empty($requestHeaders[$acceptName])){
+                $accept = $acceptArray = array();
+                $acceptString = $requestHeaders[$acceptName];
+                foreach (explode(',', strtolower($acceptString)) as $part) {
+                    $parts = preg_split('/\s*;\s*q=/', $part);
+                    if (isset($parts) && isset($parts[1]) && $parts[1]) {
+                        $num = $parts[1] * 10;
+                    } else {
+                        $num = 10;
+                    }
+                    if ($parts[0]) {
+                        $accept[$num][] = $parts[0];
+                    }
                 }
-                if ($parts[0]) {
-                    $accept[$num][] = $parts[0];
+                krsort($accept);
+                foreach ($accept as $parts) {
+                    foreach ($parts as $part) {
+                        $acceptArray[] = trim($part);
+                    }
                 }
+                return $acceptArray;
             }
-            krsort($accept);
-            foreach ($accept as $parts) {
-                foreach ($parts as $part) {
-                    $acceptArray[] = trim($part);
-                }
-            }
-            return $acceptArray;
+            return false;
         }
 
         private function getRoute(){
@@ -115,19 +121,19 @@ namespace MiniRest
                 }
             }
         }
-        
+
         private function parseController($matches){
             if(array_key_exists('controller', $matches) && !empty($matches['controller'])){
                 $controllers = explode('/', $matches['controller']);
                 $this->_controller = implode('\\', 
-                            array_map(function($str){
-                                return ucfirst($str);
-                            }, 
-                            $controllers)
-                        );
+                    array_map(function($str){
+                        return ucfirst($str);
+                    }, 
+                        $controllers)
+                    );
             }
         }
-                
+
         function __get($name) {
             return isset($this->$name) ? $this->$name : null;
         }
