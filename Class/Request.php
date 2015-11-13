@@ -123,7 +123,7 @@ namespace MiniRest
                 $controllers = explode('/', $matches['controller']);
                 $this->_controller = implode('\\', 
                     array_map(function($str){
-                        return ucfirst($str);
+                        return ucfirst($str) . (defined('\Conf::CONTROLLER_SUFFIX') ? \Conf::CONTROLLER_SUFFIX : '');
                     }, 
                         $controllers)
                     );
