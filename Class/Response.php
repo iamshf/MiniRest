@@ -48,6 +48,12 @@ namespace MiniRest{
             415 => 'Unsupported Media Type',
             416 => 'Requested Range Not Satisfiable',
             417 => 'Expectation Failed',
+            421 => 'There are too many connections from your internet address',
+            422 => 'Unprocessable Entity',
+            423 => 'Locked',
+            424 => 'Failed Dependency',
+            425 => '',
+            426 => '',
 
             500 => 'Internal Server Error',
             501 => 'Not Implemented',
