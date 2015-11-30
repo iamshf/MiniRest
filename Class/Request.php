@@ -119,15 +119,16 @@ namespace MiniRest
         }
 
         private function parseController($matches){
+            $controllers = $this->_controller;
             if(array_key_exists('controller', $matches) && !empty($matches['controller'])){
                 $controllers = explode('/', $matches['controller']);
-                $this->_controller = implode('\\', 
-                    array_map(function($str){
-                        return ucfirst($str) . (defined('\Conf::CONTROLLER_SUFFIX') ? \Conf::CONTROLLER_SUFFIX : '');
-                    }, 
-                        $controllers)
-                    );
             }
+            $this->_controller = implode('\\', 
+                array_map(function($str){
+                    return ucfirst($str) . (defined('\Conf::CONTROLLER_SUFFIX') ? \Conf::CONTROLLER_SUFFIX : '');
+                }, 
+                $controllers)
+            );
         }
 
         function __get($name) {
