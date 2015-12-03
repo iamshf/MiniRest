@@ -111,24 +111,24 @@ namespace MiniRest
                                 $this->_data[$k] = $v;
                             }
                         }
-                        $this->parseController($matches);
                         break;
                     }
                 }
             }
+            $this->parseController($matches);
         }
 
         private function parseController($matches){
-            $controllers = $this->_controller;
+            $controllers = array($this->_controller);
             if(array_key_exists('controller', $matches) && !empty($matches['controller'])){
                 $controllers = explode('/', $matches['controller']);
             }
             $this->_controller = implode('\\', 
                 array_map(function($str){
-                    return ucfirst($str) . (defined('\Conf::CONTROLLER_SUFFIX') ? \Conf::CONTROLLER_SUFFIX : '');
+                    return (defined('\Conf::CONTROLLER_NAMESPACE') ? \Conf::CONTROLLER_NAMESPACE : '') . ucfirst($str) . (defined('\Conf::CONTROLLER_SUFFIX') ? \Conf::CONTROLLER_SUFFIX : '');
                 }, 
-                $controllers)
-            );
+                    $controllers)
+                );
         }
 
         function __get($name) {

@@ -13,9 +13,9 @@
  */
 namespace MiniRest{
     class ResourceNotFound extends Resource {
-        public function getHtml(){
-            $this->_headers[] = 'HTTP/1.1 404 Not Found';
-            $this->_body = '找不到您请求的页面';
+        public function exec() {
+            $this->_response->setStatus(404);
+            $this->_body = '您请求的资源不存在';
         }
     }
 }

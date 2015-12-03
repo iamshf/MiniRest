@@ -14,35 +14,18 @@
 
 namespace MiniRest{
     class Application {
-        private $_request;
-        private $_resource;
-        private $_response;
-        
         public function exec(){
-            $this->_request = Request::getInstance();
-            
-            $this->getResource();
-            
-            $this->_response = new Response();
-            
-            $this->_resource->_request = $this->_request;
-            $this->_resource->_response = $this->_response;
-            $this->_resource->_data = $this->_request->_data;
-            $this->_resource->exec();
-            
-            $this->_response->setHeader($this->_resource->_headers);
-            $this->_response->setBody($this->_resource->_body);
-            $this->_response->output();
-        }
-        
-        private function getResource(){
-            if($this->_request->_controller) {
-                $controller = \Conf::CONTROLLER_NAMESPACE . $this->_request->_controller;
-                $this->_resource = new $controller();
-            }
-            if(!$this->_resource){
-                $this->_resource = new ResourceNotFound();
-            }
+            $request = Request::getInstance();
+            $resource = class_exists($request->_controller) ? new $request->_controller() : new ResourceNotFound();
+            //$resource->_data = $request->_data;
+            $response = Response::getInstance();
+
+            $resource->exec();
+
+            $response->setStatus($resource->_status);
+            $response->setHeader($resource->_headers);
+            $response->setBody($resource->_body);
+            $response->output();
         }
     }
 }

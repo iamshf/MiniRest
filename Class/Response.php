@@ -64,6 +64,19 @@ namespace MiniRest{
             509 => 'Bandwidth Limit Exceeded'            
         );
 
+        private static $_instance;
+        private function __construct() {
+        }
+        public static function getInstance() {
+            if(!self::$_instance) {
+                self::$_instance = new Response();
+            }
+            return self::$_instance;
+        }
+
+		public function __clone(){
+			throw new \Exception('Class MyPdo can not be cloned');
+		}
 
         public function setHeader($headers = array()){
             $this->_headers = array_merge($this->_headers, $headers);
