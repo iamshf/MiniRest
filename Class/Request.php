@@ -69,6 +69,9 @@ namespace MiniRest
             case 'POST':
                 $this->_data = $_POST;
                 break;
+            case 'HEAD':
+                $this->_data = $_GET;
+                break;
             default :
                 parse_str(file_get_contents('php://input'), $this->_data);
                 break;
