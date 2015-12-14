@@ -126,12 +126,12 @@ namespace MiniRest
             if(array_key_exists('controller', $matches) && !empty($matches['controller'])){
                 $controllers = explode('/', $matches['controller']);
             }
-            $this->_controller = implode('\\', 
+            $this->_controller = (defined('\Conf::CONTROLLER_NAMESPACE') ? \Conf::CONTROLLER_NAMESPACE : '') . implode('\\', 
                 array_map(function($str){
-                    return (defined('\Conf::CONTROLLER_NAMESPACE') ? \Conf::CONTROLLER_NAMESPACE : '') . ucfirst($str) . (defined('\Conf::CONTROLLER_SUFFIX') ? \Conf::CONTROLLER_SUFFIX : '');
+                    return ucfirst($str);
                 }, 
                     $controllers)
-                );
+                ) . (defined('\Conf::CONTROLLER_SUFFIX') ? \Conf::CONTROLLER_SUFFIX : '');
         }
 
         function __get($name) {
