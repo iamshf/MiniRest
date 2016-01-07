@@ -42,7 +42,8 @@ namespace MiniRest
         private function __construct() {
             $this->_url = $_SERVER['REQUEST_URI'];
             $requestHeaders = getallheaders();
-            $this->_method = strtoupper($_SERVER['REQUEST_METHOD']);
+            var_dump($requestHeaders);var_dump($_SERVER);exit;
+            $this->_method = strtoupper(array_key_exists('X-HTTP-Method-Override', $requestHeaders) ? $requestHeaders['X-HTTP-Method-Override'] : $_SERVER['REQUEST_METHOD']);
             $this->getData();
 
             $this->_accepts = array_unique(array_merge($this->_accepts, $this->getAcceptArray('Accept', $requestHeaders)));
