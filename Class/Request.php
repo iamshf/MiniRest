@@ -42,7 +42,7 @@ namespace MiniRest
         private function __construct() {
             $this->_url = $_SERVER['REQUEST_URI'];
             $requestHeaders = getallheaders();
-            var_dump($requestHeaders);var_dump($_SERVER);exit;
+            //var_dump($requestHeaders);var_dump($_SERVER);exit;
             $this->_method = strtoupper(array_key_exists('X-HTTP-Method-Override', $requestHeaders) ? $requestHeaders['X-HTTP-Method-Override'] : $_SERVER['REQUEST_METHOD']);
             $this->getData();
 
