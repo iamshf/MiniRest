@@ -42,14 +42,15 @@ namespace MiniRest
         private function __construct() {
             $this->_url = $_SERVER['REQUEST_URI'];
             $requestHeaders = getallheaders();
+            $requestHeaders = array_change_key_case($requestHeaders);
             //var_dump($requestHeaders);var_dump($_SERVER);exit;
-            $this->_method = strtoupper(array_key_exists('X-HTTP-Method-Override', $requestHeaders) ? $requestHeaders['X-HTTP-Method-Override'] : $_SERVER['REQUEST_METHOD']);
+            $this->_method = strtoupper(array_key_exists('x-http-method-override', $requestHeaders) ? $requestHeaders['x-http-method-override'] : $_SERVER['REQUEST_METHOD']);
             $this->getData();
 
-            $this->_accepts = array_unique(array_merge($this->_accepts, $this->getAcceptArray('Accept', $requestHeaders)));
-            $this->_acceptLanguages = array_unique(array_merge($this->_acceptLanguages, $this->getAcceptArray('Accept-Language', $requestHeaders)));
-            if(array_key_exists('If-Modified-Since', $requestHeaders) && !empty($requestHeaders['If-Modified-Since'])){
-                $this->_ifmodifiedsince = $requestHeaders['If-Modified-Since'];
+            $this->_accepts = array_unique(array_merge($this->_accepts, $this->getAcceptArray('accept', $requestHeaders)));
+            $this->_acceptLanguages = array_unique(array_merge($this->_acceptLanguages, $this->getAcceptArray('accept-language', $requestHeaders)));
+            if(array_key_exists('If-Modified-Since', $requestHeaders) && !empty($requestHeaders['if-modified-since'])){
+                $this->_ifmodifiedsince = $requestHeaders['sf-modified-since'];
             }
             $this->getRoute();
         }
