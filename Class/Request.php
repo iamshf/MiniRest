@@ -69,7 +69,7 @@ namespace MiniRest
                 $this->_data = $_GET;
                 break;
             case 'POST':
-                $this->_data = $_POST;
+                $this->_data = array_merge($_GET, $_POST);
                 break;
             case 'HEAD':
                 $this->_data = $_GET;
