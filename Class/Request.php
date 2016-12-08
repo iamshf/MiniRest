@@ -50,7 +50,7 @@ namespace MiniRest
             $this->_accepts = array_unique(array_merge($this->_accepts, $this->getAcceptArray('accept', $requestHeaders)));
             $this->_acceptLanguages = array_unique(array_merge($this->_acceptLanguages, $this->getAcceptArray('accept-language', $requestHeaders)));
             if(array_key_exists('If-Modified-Since', $requestHeaders) && !empty($requestHeaders['if-modified-since'])){
-                $this->_ifmodifiedsince = $requestHeaders['sf-modified-since'];
+                $this->_ifmodifiedsince = $requestHeaders['if-modified-since'];
             }
             $this->getRoute();
         }
