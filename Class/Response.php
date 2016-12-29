@@ -75,7 +75,7 @@ namespace MiniRest{
         }
 
 		public function __clone(){
-			throw new \Exception('Class MyPdo can not be cloned');
+			throw new \Exception('Class can not be cloned');
 		}
 
         public function setHeader($headers = array()){
@@ -97,8 +97,6 @@ namespace MiniRest{
         }
 
         public function output(){
-            
-            
             if($this->_status){
                 header('HTTP/1.1 '. $this->_status .' ' . $this->_statusMessages[$this->_status]);
                 header('Status: ' . $this->_status);
