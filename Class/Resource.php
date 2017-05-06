@@ -54,6 +54,12 @@ namespace MiniRest{
                 case 'text/plain':
                     $accept = 'Text';
                     break;
+                case 'text/xml':
+                    $accept = 'Xml';
+                    break;
+                case 'application/xml':
+                    $accept = 'Xml';
+                    break;
                 default :
                     $accept = 'Html';
                     break;
