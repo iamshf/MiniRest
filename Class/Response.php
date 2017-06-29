@@ -95,8 +95,7 @@ namespace MiniRest{
                 $this->_status = $statusCode;
             }
         }
-
-        public function output(){
+        public function outputHead(){
             if($this->_status){
                 header('HTTP/1.1 '. $this->_status .' ' . $this->_statusMessages[$this->_status]);
                 header('Status: ' . $this->_status);
@@ -104,7 +103,14 @@ namespace MiniRest{
             foreach ($this->_headers as $header){
                 header($header);
             }
+        }
+        public function outputBody(){
             echo $this->_body;
+        }
+
+        public function output(){
+            $this->outputHead();
+            $this->outputBody();
         }
     }
 }
