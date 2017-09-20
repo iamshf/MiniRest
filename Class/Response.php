@@ -9,7 +9,7 @@ namespace MiniRest{
         protected $_body;
         protected $_headers = array();
         public $_status;
-        
+
         protected $_statusMessages = array(
             100 => 'Continue',
             101 => 'Switching Protocols',
@@ -74,9 +74,9 @@ namespace MiniRest{
             return self::$_instance;
         }
 
-		public function __clone(){
-			throw new \Exception('Class can not be cloned');
-		}
+        public function __clone(){
+            throw new \Exception('Class can not be cloned');
+        }
 
         public function setHeader($headers = array()){
             $this->_headers = array_merge($this->_headers, $headers);
@@ -86,7 +86,7 @@ namespace MiniRest{
         }
         private function contentEncoding($body, $acceptEncoding){
             if($body && $acceptEncoding && ini_get('zlib.output_compression') == 0){
-                
+
             }
         }
 
@@ -104,7 +104,9 @@ namespace MiniRest{
             }
         }
         public function outputBody(){
-            echo $this->_body;
+            if(isset($this->_body) && !is_null($this->_body)) {
+                echo $this->_body;
+            }
         }
 
         public function output(){
