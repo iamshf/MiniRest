@@ -42,14 +42,14 @@ namespace MiniRest
         private function __construct() {
             $this->_url = $_SERVER['REQUEST_URI'];
             $this->_method = strtoupper(array_key_exists('HTTP_X_HTTP_METHOD_OVERRIDE', $_SERVER) ? $_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'] : $_SERVER['REQUEST_METHOD']);
-            $this->getData();
-
+            $this->_contentType = $this->getContentType();
             $this->_accepts = array_unique(array_merge($this->_accepts, $this->getAcceptArray('HTTP_ACCEPT')));
             $this->_acceptLanguages = array_unique(array_merge($this->_acceptLanguages, $this->getAcceptArray('HTTP_ACCEPT_LANGUAGE')));
             if(array_key_exists('HTTP_IF_MODIFIED_SINCE', $_SERVER) && !empty($_SERVER['HTTP_IF_MODIFIED_SINCE'])) {
                 $this->_ifmodifiedsince = $_SERVER['HTTP_IF_MODIFIED_SINCE'];
             }
             $this->_device = $this->getDevice();
+            $this->getData();
             $this->getRoute();
         }
 
@@ -62,23 +62,47 @@ namespace MiniRest
         }
 
         private function getData(){
-            switch ($this->_method){
-            case 'GET':
-                $this->_data = $_GET;
-                break;
-            case 'POST':
-                $this->_data = array_merge($_GET, $_POST);
-                break;
-            case 'HEAD':
-                $this->_data = $_GET;
-                break;
-            case 'DELETE':
-                parse_str(file_get_contents('php://input'), $data);
-                $this->_data = array_merge($_GET, $data);
-                break;
-            default :
-                parse_str(file_get_contents('php://input'), $this->_data);
-                break;
+            switch ($this->_method) {
+                case 'GET':
+                    $this->_data = $_GET;
+                    break;
+                case 'POST':
+                    $this->serializePostData();
+                    break;
+                case 'HEAD':
+                    $this->_data = $_GET;
+                    break;
+                case 'DELETE':
+                    parse_str(file_get_contents('php://input'), $data);
+                    $this->_data = array_merge($_GET, $data);
+                    break;
+                default :
+                    parse_str(file_get_contents('php://input'), $this->_data);
+                    break;
+            }
+        }
+        private function serializePostData() {
+            switch($this->_contentType) {
+                case 'application/x-www-form-urlencoded':
+                    $this->_data = array_merge($_GET, $_POST);
+                    break;
+                case 'multipart/form-data':
+                    $this->_data = array_merge($_GET, $_POST);
+                    !empty($_FILES) && $this->_data['files'] = $_FILES;
+                    break;
+                case 'text/xml':
+                    $this->_data = array_merge($_GET, json_decode(json_encode(simplexml_load_string(file_get_contents('php://input'))), true));
+                    break;
+                case 'application/xml':
+                    $this->_data = array_merge($_GET, json_decode(json_encode(simplexml_load_string(file_get_contents('php://input'))), true));
+                    break;
+                case 'application/json':
+                    $this->_data = array_merge($_GET, json_decode(file_get_contents('php://input'), true));
+                    break;
+                default:
+                    parse_str(file_get_contents('php://input'), $data);
+                    $this->_data = array_merge($_GET, $data);
+                    break;
             }
         }
         private function getDevice(){
@@ -113,6 +137,11 @@ namespace MiniRest
                 }
             }
             return $acceptArray;
+        }
+        private function getContentType() {
+            $contentType = mb_strtolower(array_key_exists('HTTP_CONTENT_TYPE', $_SERVER) ? $_SERVER['HTTP_CONTENT_TYPE'] : (array_key_exists('CONTENT_TYPE', $_SERVER) ? $_SERVER['CONTENT_TYPE'] : 'application/x-www-form-urlencoded'), 'UTF-8');
+            preg_match('/^(?<content_type>[\w-]+\/[\w-]+)(;\s?[\w-=]*)*$/', $contentType, $matches);
+            return array_key_exists('content_type', $matches) && !empty($matches['content_type']) ? $matches['content_type'] : 'application/x-www-form-urlencoded';
         }
 
         private function getRoute(){

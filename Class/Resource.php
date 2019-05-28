@@ -37,7 +37,7 @@ namespace MiniRest{
         protected function checkAccept(){
             $accepts = $this->_request->_accepts;
             $accept = 'Html';
-            if($accepts[0]){
+            if(!empty($accepts) && $accepts[0]){
                 switch (strtolower($accepts[0])){
                 case 'application/json':
                     $accept = 'Json';
