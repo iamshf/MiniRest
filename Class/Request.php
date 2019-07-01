@@ -140,7 +140,7 @@ namespace MiniRest
         }
         private function getContentType() {
             $contentType = mb_strtolower(array_key_exists('HTTP_CONTENT_TYPE', $_SERVER) ? $_SERVER['HTTP_CONTENT_TYPE'] : (array_key_exists('CONTENT_TYPE', $_SERVER) ? $_SERVER['CONTENT_TYPE'] : 'application/x-www-form-urlencoded'), 'UTF-8');
-            preg_match('/^(?<content_type>[\w-]+\/[\w-]+)(;\s?[\w-=]*)*$/', $contentType, $matches);
+            preg_match('/^(?<content_type>[\w\-]+\/[\w\-]+)(;\s?[\w\-=]*)*$/', $contentType, $matches);
             return array_key_exists('content_type', $matches) && !empty($matches['content_type']) ? $matches['content_type'] : 'application/x-www-form-urlencoded';
         }
 
