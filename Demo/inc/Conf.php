@@ -12,9 +12,11 @@
  * @author shf
  */
 class Conf{
-	const DB_INFO = '{"dsn":"mysql:host=localhost;dbname=BothOfficial;","user":"root","password":"root"}';
-	const FILE_PATH = '/mydata/Web/Test/';
+    const DB_INFO = '{"dsn":"mysql:host=localhost;dbname=BothOfficial;","user":"root","password":"root"}';
+    const FILE_PATH = '/home/shf/mydata/documents/work/project/MiniRest/';
     const CONTROLLER_NAMESPACE = '\\Web\\Controller\\';
+    const CONTROLLER_SUFFIX = 'Controller';
+    const DB = array('id' => 1);
 
     public function init(){
         $this->setError();
@@ -25,25 +27,17 @@ class Conf{
      * 设置自动包含
      */
     public function autoload($classname){
-
-        $path = Conf::FILE_PATH.
-			strtr($classname,
-					array(							
-                        'BOSI\\Common\\'=>'CommLib/',
-                        'BOSI\\Official\\'=>'/',
-                        'MiniRest\\' => 'CommLib/Rest/',
-                        "\\"=>"/"
-					)
-			).
-			'.php';
-        
-    //echo $classname,'<br />',$path,'<br />';
-        if(file_exists($path)){
-            require_once $path;
-        }
- else {
-            echo $path;
- }
+        $path = self::FILE_PATH.
+            strtr($classname,
+                array(							
+                    'Web\\Controller\\' => 'Demo/Controller/',
+                    'MiniRest\\' => 'Class/',
+                    "\\"=>"/"
+                )
+            ).
+            '.php';
+        file_exists($path) && require_once $path;
+        //echo $classname,'<br />',$path,'<br />', file_exists($path), '<br /><br /><br />';
     }
     /**
      * 设置错误显示级别
@@ -52,12 +46,12 @@ class Conf{
         ini_set('display_errors', 'On');
         error_reporting(E_ALL);
     }
-    
+
     private function setResource(){
-        $route = new MiniRest\Route();
+        $route = \MiniRest\Route::getInstance();
         $route->addRoutes(array(
             'test' => array(
-                'url' => '/(?<controller>admin/test)/(?<id>[0-9]+)/(?<name>[a-zA-Z0-9]+)',
+                'url' => '/^\/(?<controller>admin\/test)\/(?<id>[0-9]+)\/(?<name>[a-zA-Z0-9]+)/i',
                 'status' => true
             )
         ));

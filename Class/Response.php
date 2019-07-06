@@ -1,15 +1,18 @@
 <?php
-namespace MiniRest{
+namespace MiniRest {
     /**
-     * Description of Response
+     * 处理输出相关
      *
-     * @author shf
+     * @author 盛浩锋
+     * @date 2019-7-23
+     * @version v2.0.0
+     * @description 升级为PHP7版本
      */
     class Response {
         protected $_body;
         protected $_headers = array();
-        public $_status;
-
+        private $_status;
+        private static $_instance;
         protected $_statusMessages = array(
             100 => 'Continue',
             101 => 'Switching Protocols',
@@ -64,54 +67,39 @@ namespace MiniRest{
             509 => 'Bandwidth Limit Exceeded'            
         );
 
-        private static $_instance;
-        private function __construct() {
+        public static function getInstance(): self {
+            return self::$_instance ?? self::$_instance = new self();
         }
-        public static function getInstance() {
-            if(!self::$_instance) {
-                self::$_instance = new Response();
-            }
-            return self::$_instance;
-        }
-
-        public function __clone(){
-            throw new \Exception('Class can not be cloned');
-        }
-
-        public function setHeader($headers = array()){
+        public function setHeader(array $headers = array()){
             $this->_headers = array_merge($this->_headers, $headers);
         }
-        public function setBody($body){
+        public function setBody(string $body) {
             $this->_body = $body;
         }
-        private function contentEncoding($body, $acceptEncoding){
-            if($body && $acceptEncoding && ini_get('zlib.output_compression') == 0){
-
-            }
-        }
-
-        public function setStatus($statusCode){
-            if(array_key_exists($statusCode, $this->_statusMessages)){
-                $this->_status = $statusCode;
-            }
+        public function setStatus(int $statusCode = 200) {
+            array_key_exists($statusCode, $this->_statusMessages) && $this->_status = $statusCode;
         }
         public function outputHead(){
-            if($this->_status){
-                http_response_code($this->_status);
-            }
+            is_int($this->_status) && http_response_code($this->_status);
+            $this->_headers[] = 'ETag:"' . hash('md5', $this->_body) . '"';
             foreach ($this->_headers as $header){
                 header($header);
             }
         }
-        public function outputBody(){
+        public function outputBody() {
             if(isset($this->_body) && !is_null($this->_body)) {
                 echo $this->_body;
             }
         }
-
-        public function output(){
+        public function output() {
             $this->outputHead();
             $this->outputBody();
         }
+        private function contentEncoding(string $body, string $acceptEncoding){
+            if($body && $acceptEncoding && ini_get('zlib.output_compression') == 0){
+            }
+        }
+        private function __construct() {}
+        private function __clone() {}
     }
 }
