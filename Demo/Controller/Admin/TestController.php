@@ -17,6 +17,7 @@ namespace Web\Controller\Admin{
             $this->_headers[] = 'Content-Type: text/html; charset=utf-8';
             //$this->_headers[] = 'Cache-Control:max-age=86400';
             //$this->setLastModifiedSince();
+            $this->setCacheControl('max-age=86400');
             $body = '';
             foreach ($this->_request->_data as $k => $v){
                 $body .= $k . '=' . $v . '<br />';

@@ -1,10 +1,4 @@
 <?php
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 /**
  * 处理请求
  *
@@ -22,7 +16,7 @@ namespace MiniRest {
         public static function getInstance(): self {
             return self::$_instance ?? self::$_instance = new self();
         }
-        public function igonRoutes(array $routes=array()){
+        public function ignoreRoutes(array $routes=array()){
             array_key_exists($k, $this->routes) && self::$_routes[$k]['status'] = false;
         }
         public function addRoutes(array $routes = array()) {

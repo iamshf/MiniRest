@@ -27,7 +27,7 @@ class Conf{
      * 设置自动包含
      */
     public function autoload($classname){
-        $path = self::FILE_PATH.
+        $path = dirName(__FILE__) . '/../../' .
             strtr($classname,
                 array(							
                     'Web\\Controller\\' => 'Demo/Controller/',

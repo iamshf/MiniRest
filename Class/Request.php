@@ -1,14 +1,14 @@
 <?php
+/**
+ * 处理请求
+ *
+ * @author 盛浩锋
+ * @date 2019-7-23
+ * @version v2.0.0
+ * @description 升级为PHP7版本
+ */
 declare(strict_types=1); 
 namespace MiniRest {
-    /**
-     * 处理请求
-     *
-     * @author 盛浩锋
-     * @date 2019-7-23
-     * @version v2.0.0
-     * @description 升级为PHP7版本
-     */
     class Request {
         private static $_instance;
         protected $_url;
@@ -135,16 +135,5 @@ namespace MiniRest {
             }
         }
         private function __clone(){}
-        /*
-        public $mimeTypes = array(
-            'html' => 'text/html',
-            'htm' => 'text/html',
-            'php' => 'application/php',
-            'css' => 'text/css',
-            'js' => 'application/javascript',
-            'json' => 'application/json',
-            'xml' => 'application/xml'
-        );
-         */
     }
 }

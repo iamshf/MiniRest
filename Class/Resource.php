@@ -1,14 +1,15 @@
 <?php
+/**
+ * 处理资源
+ *
+ * @author 盛浩锋
+ * @date 2019-7-23
+ * @version v2.0.0
+ * @description 升级为PHP7版本
+ */
 declare(strict_types=1); 
 namespace MiniRest{
-    /**
-     * 处理资源
-     *
-     * @author 盛浩锋
-     * @date 2019-7-23
-     * @version v2.0.0
-     * @description 升级为PHP7版本
-     */
+    use MiniRest\Request;
     abstract class Resource {
         protected $_status = 200;
         protected $_headers = array();
@@ -19,6 +20,7 @@ namespace MiniRest{
         private $_lastModifiedTime;
         public function __construct() {
             $this->_request = Request::getInstance();
+            $this->exec();
         }
         public function exec() {
             $methodName = $this->getMethod();
@@ -32,6 +34,7 @@ namespace MiniRest{
         }
         protected function getMethod(): ?string {
             foreach($this->_request->_accepts as $accept) {
+                $value = '';
                 switch($accept) {
                     case 'text/html':
                         $value = 'Html';
@@ -61,7 +64,7 @@ namespace MiniRest{
             }
             //默认为html
             $this->_headers[] = 'Content-Type:text/html; charset=utf-8';
-            return $this->_request->_method . $value;
+            return $this->_request->_method . 'html';
         }
 
         protected function setEtag() {
@@ -71,15 +74,14 @@ namespace MiniRest{
             $this->_lastModifiedTime = $timestamp;
             $this->_headers[] = 'Last-Modified: ' . gmdate("D, d M Y H:i:s", $timestamp) . ' GMT';
         }
-        protected function setCacheControl(string $type = 'private', int $time = 0) {
-            $this->_headers[] = 'Cache-Control: max-age=' . $expire;
+        protected function setCacheControl(string $value = 'private') {
+            $this->_headers[] = 'Cache-Control: ' . $value;
         }
         protected function isModified() {
             $etag = '"' . hash('md5', $this->_body) . '"';
             $req_lastModifiedSince = is_string($this->_request->_ifModifiedSince) ? strtotime($this->_request->_ifModifiedSince) : null;
             if($this->_request->_ifNoneMatch == $etag || $this->_request->_ifNoneMatch == 'W/' . $etag || (is_int($req_lastModifiedSince) && is_int($this->_lastModifiedTime) && $req_lastModifiedSince > $this->_lastModifiedTime)) {
                 $this->_status = 304;
-                $this->_body = '';
             }
         }
         protected function render(string $template, array $view = array()) {

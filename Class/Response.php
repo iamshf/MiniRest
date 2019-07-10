@@ -1,13 +1,14 @@
 <?php
+/**
+ * 处理输出相关
+ *
+ * @author 盛浩锋
+ * @date 2019-7-23
+ * @version v2.0.0
+ * @description 升级为PHP7版本
+ */
+declare(strict_types=1); 
 namespace MiniRest {
-    /**
-     * 处理输出相关
-     *
-     * @author 盛浩锋
-     * @date 2019-7-23
-     * @version v2.0.0
-     * @description 升级为PHP7版本
-     */
     class Response {
         protected $_body;
         protected $_headers = array();
@@ -87,17 +88,13 @@ namespace MiniRest {
             }
         }
         public function outputBody() {
-            if(isset($this->_body) && !is_null($this->_body)) {
+            if(isset($this->_body) && !is_null($this->_body) && $this->_status != 304) {
                 echo $this->_body;
             }
         }
         public function output() {
             $this->outputHead();
             $this->outputBody();
-        }
-        private function contentEncoding(string $body, string $acceptEncoding){
-            if($body && $acceptEncoding && ini_get('zlib.output_compression') == 0){
-            }
         }
         private function __construct() {}
         private function __clone() {}
