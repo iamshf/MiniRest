@@ -22,15 +22,30 @@ namespace MiniRest{
             $this->_request = Request::getInstance();
             $this->exec();
         }
-        public function exec() {
-            $methodName = $this->getMethod();
+        public function exec(?string $methodName = null) {
+            $methodName = $methodName ?? $this->getMethod();
             method_exists($this, $methodName) ? $this->$methodName() : $this->unSupportedMedia();
             $this->isModified();
             $this->setEtag();
         }
         protected function unSupportedMedia() {
             $this->_status = 415;
-            $this->_body = '您请求的资源不支持';
+            foreach($this->_request->_accepts as $accept) {
+                switch($accept) {
+                    case 'application/json':
+                        $this->_body = '{"msg": "您请求的资源不支持"}';
+                        break;
+                    case 'application/javascript':
+                    case 'text/javascript':
+                        $this->_body = '<script type="text/javascript">alert("您请求的资源不支持");</script>';
+                        break;
+                    case 'application/xml':
+                    case 'text/xml':
+                        $this->_body = '<?xml version="1.0" encoding="UTF-8"?><body><msg>您请求的资源不支持</msg></body>';
+                        break;
+                }
+            }
+            empty($this->_body) && $this->_body = '您请求的资源不支持';
         }
         protected function getMethod(): ?string {
             foreach($this->_request->_accepts as $accept) {
@@ -57,7 +72,7 @@ namespace MiniRest{
                         $value = 'Xml';
                         break;
                 }
-                if(method_exists($this, $this->_request->_method . $value)) {
+                if(!empty($value)) {
                     $this->_headers[] = 'Content-Type:' . $accept . '; charset=utf-8';
                     return $this->_request->_method . $value;
                 }
@@ -68,7 +83,7 @@ namespace MiniRest{
         }
 
         protected function setEtag() {
-            $this->_setETag && $this->_headers[] = 'ETag:' . '"'. hash('md5', $this->_body) .'"';
+            $this->_setETag && $this->_headers[] = 'ETag:' . '"'. hash('md5', (string)$this->_body) .'"';
         }
         protected function setLastModifiedSince(int $timestamp) {
             $this->_lastModifiedTime = $timestamp;
@@ -78,7 +93,7 @@ namespace MiniRest{
             $this->_headers[] = 'Cache-Control: ' . $value;
         }
         protected function isModified() {
-            $etag = '"' . hash('md5', $this->_body) . '"';
+            $etag = '"' . hash('md5', (string)$this->_body) . '"';
             $req_lastModifiedSince = is_string($this->_request->_ifModifiedSince) ? strtotime($this->_request->_ifModifiedSince) : null;
             if($this->_request->_ifNoneMatch == $etag || $this->_request->_ifNoneMatch == 'W/' . $etag || (is_int($req_lastModifiedSince) && is_int($this->_lastModifiedTime) && $req_lastModifiedSince > $this->_lastModifiedTime)) {
                 $this->_status = 304;

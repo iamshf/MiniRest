@@ -19,7 +19,7 @@ namespace MiniRest{
             $response = Response::getInstance();
             $response->setStatus($resource->_status);
             $response->setHeader($resource->_headers);
-            $response->setBody($resource->_body);
+            $response->setBody((string)$resource->_body);
             $response->output();
         }
         private function autoload() {
