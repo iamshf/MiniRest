@@ -77,7 +77,8 @@ namespace MiniRest {
                 $this->_data = array_merge($_GET, $data);
                 break;
             default :
-                parse_str(file_get_contents('php://input'), $this->_data);
+                parse_str(file_get_contents('php://input'), $data);
+                $this->_data = array_merge($_GET, $data);
                 break;
             }
         }
