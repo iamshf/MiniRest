@@ -93,9 +93,10 @@ namespace MiniRest {
                 break;
             case 'application/xml':
             case 'text/xml':
-                $this->_data = array_merge($_GET, json_decode(json_encode(simplexml_load_string(file_get_contents('php://input'))), true));
+                //$this->_data = array_merge($_GET, json_decode(json_encode(simplexml_load_string(file_get_contents('php://input'))), true));
                 //后续改为获取xml字符串，由应用程序自己解析
-                //$this->_data['request_xml'] = file_get_contents('php://input');
+                $this->_data = $_GET;
+                $this->_data['request_xml'] = file_get_contents('php://input');
                 break;
             case 'application/json':
                 $this->_data = array_merge($_GET, json_decode(file_get_contents('php://input'), true));
