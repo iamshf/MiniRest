@@ -99,7 +99,7 @@ namespace MiniRest {
                 $this->_data['request_xml'] = file_get_contents('php://input');
                 break;
             case 'application/json':
-                $this->_data = array_merge($_GET, json_decode(file_get_contents('php://input'), true) ?? array());
+                $this->_data = array_merge($_GET, (json_decode(file_get_contents('php://input'), true) ?? array()));
                 break;
             default:
                 parse_str(file_get_contents('php://input'), $data);
