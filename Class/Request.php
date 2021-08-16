@@ -29,21 +29,56 @@ namespace MiniRest {
             return self::$_instance ?? self::$_instance = new self();
         }
         private function __construct(){
-            $this->_url = $_SERVER['REQUEST_URI'];
-            $this->_method = strtolower($_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'] ?? $_SERVER['REQUEST_METHOD']);
-            $this->_accepts = $this->getAcceptArray('HTTP_ACCEPT');
-            $this->_acceptEncoding = $this->getAcceptArray('HTTP_ACCEPT_ENCODING');
-            $this->_contentType = $this->getContentType();
-            array_key_exists('HTTP_IF_MODIFIED_SINCE', $_SERVER) && !empty($_SERVER['HTTP_IF_MODIFIED_SINCE']) && $this->_ifModifiedSince = $_SERVER['HTTP_IF_MODIFIED_SINCE'];
-            array_key_exists('HTTP_IF_NONE_MATCH', $_SERVER) && !empty($_SERVER['HTTP_IF_NONE_MATCH']) && $this->_ifNoneMatch = $_SERVER['HTTP_IF_NONE_MATCH'];
-            $this->getData();
+            if(preg_match("/cli/i", \PHP_SAPI)) {
+               $args = getopt('x::', array('headers::', 'params::'));//同curl -x参数，http method
+               $cli_headers = $this->getCliHeaders($args);
+               $this->getCliParams($args);
+            }
+            else {
+                $this->getData();
+                $this->_ifModifiedSince = $_SERVER['HTTP_IF_MODIFIED_SINCE'] ?? null;
+                $this->_ifNoneMatch = $_SERVER['HTTP_IF_NONE_MATCH'] ?? null;
+                $this->_device = $this->getDevice();
+            }
+            $this->_url = $cli_headers['REQUEST_URI'] ?? $_SERVER['REQUEST_URI'] ?? '/index';
+            $this->_method = strtolower($args['x'] ?? $_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'] ?? $_SERVER['REQUEST_METHOD'] ?? 'get');
+            $this->_accepts = $this->getAcceptArray($cli_headers['ACCEPT'] ?? $_SERVER['HTTP_ACCEPT'] ?? null);
+            $this->_acceptEncoding = $this->getAcceptArray($cli_headers['ACCEPT_ENCODING'] ?? $_SERVER['HTTP_ACCEPT_ENCODING'] ?? null);
+            $this->_contentType = $cli_headers['CONTENT-TYPE'] ?? $this->getContentType();
             $this->getRoute();
-            $this->_device = $this->getDevice();
         }
-        private function getAcceptArray(string $k): array {
+        //序列化cli方式请求http头，参数为--headers
+        private function getCliHeaders(array $args): array {
+            $cli_headers = array();
+            if(array_key_exists('headers', $args) && !empty($args['headers'])) {
+                $headers = is_string($args['headers']) ? array($args['headers']) : $args['headers'];
+                foreach($headers as $header) {
+                    $arr = explode(':', $header);
+                    if(count($arr) == 2) {
+                        $cli_headers[strtoupper(trim($arr[0]))] = trim($arr[1]);
+                    }
+                }
+            }
+            return $cli_headers;
+        }
+        //序列化cli方式请求参数，参数名为--params
+        private function getCliParams(array $args): void {
+            if(array_key_exists('params', $args) && !empty($args['params'])) {
+                $params = is_string($args['params']) ? array($args['params']) : $args['params'];
+                $this->_data = array();
+                foreach($params as $param) {
+                    if(!empty($param)) {
+                        parse_str($param, $data);
+                        $this->_data += $data;
+                    }
+                }
+            }
+        }
+
+        private function getAcceptArray(?string $value): array {
             $result = array();
-            if(array_key_exists($k, $_SERVER) && !empty($_SERVER[$k])) {
-                $arr = explode(',', strtolower($_SERVER[$k]));
+            if(!empty($value)) {
+                $arr = explode(',', strtolower($value));
                 $arr_q = array();
                 foreach($arr as $v) {
                     $parts = preg_split('/\s*;\s*q=/', $v);
