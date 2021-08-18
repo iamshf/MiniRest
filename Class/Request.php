@@ -29,6 +29,12 @@ namespace MiniRest {
             return self::$_instance ?? self::$_instance = new self();
         }
         private function __construct(){
+            $this->_url = $cli_headers['REQUEST_URI'] ?? $_SERVER['REQUEST_URI'] ?? '/index';
+            $this->_method = strtolower($args['x'] ?? $_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'] ?? $_SERVER['REQUEST_METHOD'] ?? 'get');
+            $this->_accepts = $this->getAcceptArray($cli_headers['ACCEPT'] ?? $_SERVER['HTTP_ACCEPT'] ?? null);
+            $this->_acceptEncoding = $this->getAcceptArray($cli_headers['ACCEPT_ENCODING'] ?? $_SERVER['HTTP_ACCEPT_ENCODING'] ?? null);
+            $this->_contentType = $cli_headers['CONTENT-TYPE'] ?? $this->getContentType();
+            $this->getRoute();
             if(preg_match("/cli/i", \PHP_SAPI)) {
                $args = getopt('x::', array('headers::', 'params::'));//同curl -x参数，http method
                $cli_headers = $this->getCliHeaders($args);
@@ -40,12 +46,6 @@ namespace MiniRest {
                 $this->_ifNoneMatch = $_SERVER['HTTP_IF_NONE_MATCH'] ?? null;
                 $this->_device = $this->getDevice();
             }
-            $this->_url = $cli_headers['REQUEST_URI'] ?? $_SERVER['REQUEST_URI'] ?? '/index';
-            $this->_method = strtolower($args['x'] ?? $_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'] ?? $_SERVER['REQUEST_METHOD'] ?? 'get');
-            $this->_accepts = $this->getAcceptArray($cli_headers['ACCEPT'] ?? $_SERVER['HTTP_ACCEPT'] ?? null);
-            $this->_acceptEncoding = $this->getAcceptArray($cli_headers['ACCEPT_ENCODING'] ?? $_SERVER['HTTP_ACCEPT_ENCODING'] ?? null);
-            $this->_contentType = $cli_headers['CONTENT-TYPE'] ?? $this->getContentType();
-            $this->getRoute();
         }
         //序列化cli方式请求http头，参数为--headers
         private function getCliHeaders(array $args): array {
