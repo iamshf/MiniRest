@@ -30,6 +30,21 @@ namespace MiniRest{
         }
         protected function unSupportedMedia() {
             $this->_status = 415;
+            if(!empty($extension = strtolower(trim($this->_request->_data['extension'] ?? '')))) {
+                switch($extension) {
+                    case 'html':
+                    case 'htm':
+                        $this->_body = '<script type="text/javascript">alert("您请求的资源不支持");</script>';
+                        break;
+                    case 'json':
+                        $this->_body = '{"msg": "您请求的资源不支持"}';
+                        break;
+                    case 'xml':
+                        $this->_body = '<?xml version="1.0" encoding="UTF-8"?><body><msg>您请求的资源不支持</msg></body>';
+                        break;
+                }
+                if(!empty($this->_body)) { return; }
+            }
             foreach($this->_request->_accepts as $accept) {
                 switch($accept) {
                     case 'application/json':
@@ -48,6 +63,49 @@ namespace MiniRest{
             empty($this->_body) && $this->_body = '您请求的资源不支持';
         }
         protected function getMethod(): ?string {
+            if(!empty($extension = strtolower(trim($this->_request->_data['extension'] ?? '')))) {
+                switch($extension) {
+                    case 'html':
+                    case 'htm':
+                        $value = 'Html';
+                        $this->_headers[] = 'Content-Type: text/html; charset=utf-8';
+                        break;
+                    case 'json':
+                        $value = 'Json';
+                        $this->_headers[] = 'Content-Type: application/json; charset=utf-8';
+                        break;
+                    case 'xml':
+                        $value = 'Xml';
+                        $this->_headers[] = 'Content-Type: application/xml; charset=utf-8';
+                        break;
+                    case 'txt':
+                    case 'lrc':
+                        $value = 'Text';
+                        $this->_headers[] = 'Content-Type: text/plain; charset=utf-8';
+                        break;
+                    case 'js':
+                        $value = 'Js';
+                        $this->_headers[] = 'Content-Type: application/javascript; charset=utf-8';
+                        break;
+                    case 'css':
+                        $value = 'Css';
+                        $this->_headers[] = 'Content-Type: text/css; charset=utf-8';
+                        break;
+                    case 'jpg':
+                    case 'jpeg':
+                        $value = 'Image';
+                        $this->_headers[] = 'Content-Type: image/jpeg';
+                        break;
+                    case 'png':
+                    case 'gif':
+                        $value = 'Image';
+                        $this->_headers[] = 'Content-Type: image/' . $extension;
+                        break;
+                }
+                if(!empty($value)) {
+                    return $this->_request->_method . $value;
+                }
+            }
             foreach($this->_request->_accepts as $accept) {
                 $value = '';
                 switch($accept) {

@@ -11,13 +11,15 @@ declare(strict_types=1);
 namespace MiniRest {
     class Route {
         private static $_instance;
-        private static $_routes = array('default' => array('url' => '/^\/(?<controller>[\w\/]+)/i', 'status' => true));
+        private static $_routes = array('default' => array('url' => '/^\/(?<controller>[\w\/]+)(\.(?<extension>[a-zA-Z0-9]{2,}))?/i', 'status' => true));
 
         public static function getInstance(): self {
             return self::$_instance ?? self::$_instance = new self();
         }
         public function ignoreRoutes(array $routes=array()){
-            array_key_exists($k, $this->routes) && self::$_routes[$k]['status'] = false;
+            foreach($routes as $k => $v) {
+                array_key_exists($k, self::$_routes) && self::$_routes[$k]['status'] = false;
+            }
         }
         public function addRoutes(array $routes = array()) {
             foreach(self::$_routes as $k => $v) {
