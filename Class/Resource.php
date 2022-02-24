@@ -101,6 +101,14 @@ namespace MiniRest{
                         $value = 'Image';
                         $this->_headers[] = 'Content-Type: image/' . $extension;
                         break;
+                    case 'mp3':
+                        $value = 'Audio';
+                        $this->_headers[] = 'Content-Type: audio/' . $extension;
+                        break;
+                    case 'mp4':
+                        $value = 'Video';
+                        $this->_headers[] = 'Content-Type: audio/' . $extension;
+                        break;
                 }
                 if(!empty($value)) {
                     return $this->_request->_method . $value;
@@ -128,6 +136,12 @@ namespace MiniRest{
                     case 'application/xml':
                     case 'text/xml':
                         $value = 'Xml';
+                        break;
+                    case 'audio/mp3':
+                        $value = 'Audio';
+                        break;
+                    case 'video/mp4':
+                        $value = 'Video';
                         break;
                 }
                 if(!empty($value)) {
