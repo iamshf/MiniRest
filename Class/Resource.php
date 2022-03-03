@@ -109,6 +109,10 @@ namespace MiniRest{
                         $value = 'Video';
                         $this->_headers[] = 'Content-Type: audio/' . $extension;
                         break;
+                    case 'zip':
+                        $value = 'Zip';
+                        $this->_headers[] = 'Content-Type: application/x-zip-compressed';
+                        break;
                 }
                 if(!empty($value)) {
                     return $this->_request->_method . $value;
@@ -142,6 +146,9 @@ namespace MiniRest{
                         break;
                     case 'video/mp4':
                         $value = 'Video';
+                        break;
+                    case 'application/x-zip-compressed':
+                        $value = 'Zip';
                         break;
                 }
                 if(!empty($value)) {
