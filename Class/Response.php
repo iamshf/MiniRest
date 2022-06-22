@@ -82,9 +82,14 @@ namespace MiniRest {
         }
         public function outputHead(){
             is_int($this->_status) && http_response_code($this->_status);
-            $this->_headers[] = 'ETag:"' . hash('md5', $this->_body) . '"';
-            foreach ($this->_headers as $header){
-                header($header);
+            // $this->_headers[] = 'ETag: "' . hash('md5', $this->_body) . '"';
+            foreach ($this->_headers as $k => $v) {
+                if(is_numeric($k) && preg_match('/.+:.+/', $v)) {
+                    [$k, $v] = explode(':', $v);
+                }
+                if(trim((string)$k) != 'Status Code') {
+                    header((trim((string)$k) . ': ' . trim((string)$v)));
+                }
             }
         }
         public function outputBody() {
