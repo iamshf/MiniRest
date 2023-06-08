@@ -1,4 +1,5 @@
 <?php
+
 /**
  * 处理请求
  *
@@ -7,9 +8,12 @@
  * @version v2.0.0
  * @description 升级为PHP7版本
  */
-declare(strict_types=1); 
+
+declare(strict_types=1);
+
 namespace MiniRest {
-    class Request {
+    class Request
+    {
         private static $_instance;
         protected $_url;
         protected $_method;
@@ -18,28 +22,31 @@ namespace MiniRest {
         protected $_acceptEncoding;
         protected $_ifModifiedSince;
         protected $_ifNoneMatch;
-        protected $_data;
+        protected $_data = array();
         protected $_device;
         protected $_controller;
 
-        public function __get(string $k) {
+        public function __get(string $k)
+        {
             return $this->$k;
         }
-        public static function getInstance(): self{
+        public static function getInstance(): self
+        {
             return self::$_instance ?? self::$_instance = new self();
         }
-        private function __construct(){
-            if(preg_match("/cli/i", \PHP_SAPI)) {
-               $args = getopt('x::', array('headers::', 'params::'));//同curl -x参数，http method
-               $cli_headers = $this->getCliHeaders($args);
-               $this->getCliParams($args);
+        private function __construct()
+        {
+            if (preg_match("/cli/i", \PHP_SAPI)) {
+                $args = getopt('x::', array('headers::', 'params::')); //同curl -x参数，http method
+                $cli_headers = $this->getCliHeaders($args);
+                $this->getCliParams($args);
             }
             $this->_url = $cli_headers['REQUEST_URI'] ?? $_SERVER['REQUEST_URI'] ?? '/index';
             $this->_method = strtolower($args['x'] ?? $_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'] ?? $_SERVER['REQUEST_METHOD'] ?? 'get');
             $this->_accepts = $this->getAcceptArray($cli_headers['ACCEPT'] ?? $_SERVER['HTTP_ACCEPT'] ?? null);
             $this->_acceptEncoding = $this->getAcceptArray($cli_headers['ACCEPT_ENCODING'] ?? $_SERVER['HTTP_ACCEPT_ENCODING'] ?? null);
             $this->_contentType = $cli_headers['CONTENT-TYPE'] ?? $this->getContentType();
-            if(!preg_match("/cli/i", \PHP_SAPI)) {
+            if (!preg_match("/cli/i", \PHP_SAPI)) {
                 $this->getData();
                 $this->_ifModifiedSince = $_SERVER['HTTP_IF_MODIFIED_SINCE'] ?? null;
                 $this->_ifNoneMatch = $_SERVER['HTTP_IF_NONE_MATCH'] ?? null;
@@ -48,13 +55,14 @@ namespace MiniRest {
             $this->getRoute();
         }
         //序列化cli方式请求http头，参数为--headers
-        private function getCliHeaders(array $args): array {
+        private function getCliHeaders(array $args): array
+        {
             $cli_headers = array();
-            if(array_key_exists('headers', $args) && !empty($args['headers'])) {
+            if (array_key_exists('headers', $args) && !empty($args['headers'])) {
                 $headers = is_string($args['headers']) ? array($args['headers']) : $args['headers'];
-                foreach($headers as $header) {
+                foreach ($headers as $header) {
                     $arr = explode(':', $header);
-                    if(count($arr) == 2) {
+                    if (count($arr) == 2) {
                         $cli_headers[strtoupper(trim($arr[0]))] = trim($arr[1]);
                     }
                 }
@@ -62,12 +70,13 @@ namespace MiniRest {
             return $cli_headers;
         }
         //序列化cli方式请求参数，参数名为--params
-        private function getCliParams(array $args): void {
-            if(array_key_exists('params', $args) && !empty($args['params'])) {
+        private function getCliParams(array $args): void
+        {
+            if (array_key_exists('params', $args) && !empty($args['params'])) {
                 $params = is_string($args['params']) ? array($args['params']) : $args['params'];
                 $this->_data = array();
-                foreach($params as $param) {
-                    if(!empty($param)) {
+                foreach ($params as $param) {
+                    if (!empty($param)) {
                         parse_str($param, $data);
                         $this->_data += $data;
                     }
@@ -75,79 +84,84 @@ namespace MiniRest {
             }
         }
 
-        private function getAcceptArray(?string $value): array {
+        private function getAcceptArray(?string $value): array
+        {
             $result = array();
-            if(!empty($value)) {
+            if (!empty($value)) {
                 $arr = explode(',', strtolower($value));
                 $arr_q = array();
-                foreach($arr as $v) {
+                foreach ($arr as $v) {
                     $parts = preg_split('/\s*;\s*q=/', $v);
                     is_array($parts) && !empty($parts) && $arr_q[$parts[1] ?? 1][] = trim($parts[0]);
                 }
-                krsort($arr_q, \SORT_NUMERIC);//按权重因子排序
-                array_walk_recursive($arr_q, function($item, $k) use(&$result) {
+                krsort($arr_q, \SORT_NUMERIC); //按权重因子排序
+                array_walk_recursive($arr_q, function ($item, $k) use (&$result) {
                     $result[] = $item;
                 });
             }
             return $result;
         }
-        private function getContentType(): string {
+        private function getContentType(): string
+        {
             $contentType = mb_strtolower(trim($_SERVER['HTTP_CONTENT_TYPE'] ?? $_SERVER['CONTENT_TYPE'] ?? 'application/x-www-form-urlencoded'));
             preg_match('/^(?<content_type>[\w\-]+\/[\w\-]+)(;\s?[\w\-=]*)*$/', $contentType, $matches);
             return $matches['content_type'] ?? 'application/x-www-form-urlencoded';
         }
-        private function getData(){
+        private function getData()
+        {
             switch ($this->_method) {
-            case 'get':
-                $this->_data = $_GET;
-                break;
-            case 'post':
-                $this->serializePostData();
-                break;
-            case 'head':
-                $this->_data = $_GET;
-                break;
-            case 'delete':
-                parse_str(file_get_contents('php://input'), $data);
-                $this->_data = array_merge($_GET, $data);
-                break;
-            default :
-                parse_str(file_get_contents('php://input'), $data);
-                $this->_data = array_merge($_GET, $data);
-                break;
+                case 'get':
+                    $this->_data = $_GET;
+                    break;
+                case 'post':
+                    $this->serializePostData();
+                    break;
+                case 'head':
+                    $this->_data = $_GET;
+                    break;
+                case 'delete':
+                    parse_str(file_get_contents('php://input'), $data);
+                    $this->_data = array_merge($_GET, $data);
+                    break;
+                default:
+                    parse_str(file_get_contents('php://input'), $data);
+                    $this->_data = array_merge($_GET, $data);
+                    break;
             }
         }
-        private function serializePostData() {
-            switch($this->_contentType) {
-            case 'application/x-www-form-urlencoded':
-                $this->_data = array_merge($_GET, $_POST);
-                break;
-            case 'multipart/form-data':
-                $this->_data = array_merge($_GET, $_POST);
-                !empty($_FILES) && $this->_data['files'] = $_FILES;
-                break;
-            case 'application/xml':
-            case 'text/xml':
-                //$this->_data = array_merge($_GET, json_decode(json_encode(simplexml_load_string(file_get_contents('php://input'))), true));
-                //后续改为获取xml字符串，由应用程序自己解析
-                $this->_data = $_GET;
-                $this->_data['request_xml'] = file_get_contents('php://input');
-                break;
-            case 'application/json':
-                $this->_data = array_merge($_GET, (json_decode(file_get_contents('php://input'), true) ?? array()));
-                break;
-            default:
-                parse_str(file_get_contents('php://input'), $data);
-                $this->_data = array_merge($_GET, $data);
-                break;
+        private function serializePostData()
+        {
+            switch ($this->_contentType) {
+                case 'application/x-www-form-urlencoded':
+                    $this->_data = array_merge($_GET, $_POST);
+                    break;
+                case 'multipart/form-data':
+                    $this->_data = array_merge($_GET, $_POST);
+                    !empty($_FILES) && $this->_data['files'] = $_FILES;
+                    break;
+                case 'application/xml':
+                case 'text/xml':
+                    //$this->_data = array_merge($_GET, json_decode(json_encode(simplexml_load_string(file_get_contents('php://input'))), true));
+                    //后续改为获取xml字符串，由应用程序自己解析
+                    $this->_data = $_GET;
+                    $this->_data['request_xml'] = file_get_contents('php://input');
+                    break;
+                case 'application/json':
+                    $this->_data = array_merge($_GET, (json_decode(file_get_contents('php://input'), true) ?? array()));
+                    break;
+                default:
+                    parse_str(file_get_contents('php://input'), $data);
+                    $this->_data = array_merge($_GET, $data);
+                    break;
             }
         }
-        private function getRoute(){
+        private function getRoute()
+        {
             $routes = (Route::getInstance())->_routes;
-            foreach($routes as $route) {
-                if($route['status']) {
-                    if(preg_match($route['url'], $this->_url, $matches)) {
-                        foreach($matches as $k => $v){
+            foreach ($routes as $route) {
+                if ($route['status']) {
+                    if (preg_match($route['url'], $this->_url, $matches)) {
+                        foreach ($matches as $k => $v) {
                             is_string($k) && $k !== 'controller' && $this->_data[$k] = $v;
                         }
                         break;
@@ -156,21 +170,24 @@ namespace MiniRest {
             }
             $this->parseController($matches);
         }
-        private function parseController(array $matches) {
+        private function parseController(array $matches)
+        {
             $controllers = explode('/', $matches['controller'] ?? 'index');
-            $this->_controller = (defined('\Conf::CONTROLLER_NAMESPACE') ? \Conf::CONTROLLER_NAMESPACE : '') . implode('\\', array_map(function($str) {
+            $this->_controller = (defined('\Conf::CONTROLLER_NAMESPACE') ? \Conf::CONTROLLER_NAMESPACE : '') . implode('\\', array_map(function ($str) {
                 return empty($str) ? 'Index' : ucfirst($str);
             }, $controllers)) . (defined('\Conf::CONTROLLER_SUFFIX') ? \Conf::CONTROLLER_SUFFIX : '');
         }
 
-        private function getDevice(){
-            if(array_key_exists('HTTP_USER_AGENT', $_SERVER) && (preg_match('/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino|windowswechat/i',$_SERVER['HTTP_USER_AGENT'])||preg_match('/1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i',substr($_SERVER['HTTP_USER_AGENT'],0,4)))){
+        private function getDevice()
+        {
+            if (array_key_exists('HTTP_USER_AGENT', $_SERVER) && (preg_match('/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino|windowswechat/i', $_SERVER['HTTP_USER_AGENT']) || preg_match('/1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i', substr($_SERVER['HTTP_USER_AGENT'], 0, 4)))) {
                 return Device::MOBILEPHONE;
-            }
-            else {
+            } else {
                 return Device::PC;
             }
         }
-        private function __clone(){}
+        private function __clone()
+        {
+        }
     }
 }
