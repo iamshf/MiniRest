@@ -109,7 +109,8 @@ namespace MiniRest {
         }
         private function getData()
         {
-            switch ($this->_method) {
+            $_method = strtolower(trim($args['x'] ?? $_SERVER['REQUEST_METHOD'] ?? 'get'));
+            switch ($_method) {
                 case 'get':
                     $this->_data = $_GET;
                     break;
